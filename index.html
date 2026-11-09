@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<title>Glühwürmchen-Augen</title>
+<title>Augen-Gym</title>
 <meta name="description" content="Playful eye-movement and field-of-view training for kids, using the selfie camera.">
 <meta name="theme-color" content="#0b1633">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Glühwürmchen-Augen">
+<meta name="apple-mobile-web-app-title" content="Augen-Gym">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -28,10 +28,10 @@
   <header class="home-head">
     <img class="hero-owl" src="img/owl.png" alt="">
     <div class="title-block">
-      <h1 data-i18n="appName">Glühwürmchen-Augen</h1>
-      <p class="tagline" data-i18n="tagline">Augenspiele mit Ollie der Eule</p>
+      <h1 data-i18n="appName">Augen-Gym</h1>
+      <p class="tagline" data-i18n="tagline">Trainiere deine Augen mit Ollie der Eule</p>
     </div>
-    <div class="star-pill" aria-label="Sterne"><img src="img/star.png" alt=""><span id="stars-total-n">0</span></div>
+    <div class="star-pill" aria-label="Medaillen"><img src="img/medal.png" alt=""><span id="stars-total-n">0</span></div>
   </header>
 
   <p id="daily-note" class="daily-note" hidden></p>
@@ -57,7 +57,7 @@
     </button>
     <button class="game-card saccade" data-game="saccade" id="card-saccade">
       <span class="card-art" aria-hidden="true"><span class="card-glow"></span><img src="img/ball.png" alt=""></span>
-      <span class="card-title" data-i18n="gameSaccade">Augen Gym</span>
+      <span class="card-title" data-i18n="gameSaccade">Ball-Hüpfer</span>
       <span class="card-hint" data-i18n="gameSaccadeHint"></span>
       <span class="card-play" aria-hidden="true">▶</span>
     </button>
@@ -102,7 +102,7 @@
 <section id="play" class="screen play" hidden>
   <canvas id="stage"></canvas>
   <div id="hud" class="hud" hidden>
-    <div id="hud-stars" class="hud-stars star-pill small"><img src="img/star.png" alt=""><span id="hud-stars-n">0</span></div>
+    <div id="hud-stars" class="hud-stars star-pill small"><img src="img/medal.png" alt=""><span id="hud-stars-n">0</span></div>
     <div id="hud-time" class="hud-time" aria-hidden="true"><i></i></div>
     <button id="pause-btn" class="hud-pause" aria-label="Pause">❚❚</button>
   </div>
@@ -137,7 +137,7 @@
 <main id="done" class="screen done" hidden>
   <img class="done-owl" src="img/owl.png" alt="">
   <h2 data-i18n="roundDone">Round done!</h2>
-  <p class="done-stars star-pill big"><img src="img/star.png" alt=""><span>×</span><span id="done-stars-n">0</span></p>
+  <p class="done-stars star-pill big"><img src="img/medal.png" alt=""><span>×</span><span id="done-stars-n">0</span></p>
   <p id="done-sticker" class="done-sticker" hidden></p>
   <p id="done-limit" class="daily-note" hidden></p>
   <div class="row">
@@ -204,7 +204,7 @@
       <label class="check"><input type="checkbox" name="debugGaze" id="s-debug"> <span data-i18n="sDebug">Show eye-tracking dot</span></label>
       <fieldset class="game-vis" id="game-vis">
         <legend data-i18n="sGames">Spiele auf dem Startbildschirm</legend>
-        <label class="check"><input type="checkbox" data-game="saccade"> <span data-i18n="gameSaccade">Augen Gym</span></label>
+        <label class="check"><input type="checkbox" data-game="saccade"> <span data-i18n="gameSaccade">Ball-Hüpfer</span></label>
         <label class="check"><input type="checkbox" data-game="basket"> <span data-i18n="gameBasket">Basketball</span></label>
         <label class="check"><input type="checkbox" data-game="pendel"> <span data-i18n="gamePendel">Pendel-Fänger</span></label>
         <label class="check"><input type="checkbox" data-game="pursuit"> <span data-i18n="gamePursuit">Glühwürmchen-Jagd</span></label>

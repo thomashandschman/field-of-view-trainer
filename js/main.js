@@ -442,7 +442,7 @@ function finishRound() {
   startBreak();
 }
 
-// ---------- eye break: close eyes, Carlotta counts to five ----------
+// ---------- eye break: close eyes, the voice counts to five ----------
 // The intro sentence plays to the end first. Then each number is spoken only
 // after the previous one has finished AND the eyes have been closed for about
 // another second, so counting pauses while the eyes are open.

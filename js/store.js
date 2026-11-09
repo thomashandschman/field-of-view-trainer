@@ -13,7 +13,7 @@ export const DEFAULT_SETTINGS = {
   sound: true,
   debugGaze: false,
   screenCm: '',
-  // Which games show on the home screen. By default only Augen Gym.
+  // Which games show on the home screen. By default only Ball-Hüpfer.
   games: { saccade: true, basket: false, pendel: false, pursuit: false, spotter: false },
 };
 
@@ -89,7 +89,7 @@ export function nudgeReach(dir, delta) {
 }
 
 // Sticker book: every illustrated character in three colourways (27 stickers).
-const STICKER_ART = ['owl', 'fox', 'wolf', 'shark', 'panther', 'eagle', 'raccoon', 'ball', 'star'];
+const STICKER_ART = ['owl', 'fox', 'wolf', 'shark', 'panther', 'eagle', 'raccoon', 'ball', 'medal'];
 export const STICKERS = [0, 1, 2].flatMap((v) => STICKER_ART.map((k) => ({ k, v })));
 export const STICKER_FILTERS = ['none', 'hue-rotate(150deg) saturate(1.2)', 'sepia(1) saturate(4) hue-rotate(-12deg) brightness(1.15)'];
 export const STARS_PER_STICKER = 12;

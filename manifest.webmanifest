@@ -1,6 +1,6 @@
 {
-  "name": "Glühwürmchen-Augen",
-  "short_name": "Glühwürmchen",
+  "name": "Augen-Gym",
+  "short_name": "Augen-Gym",
   "description": "Playful eye-movement and field-of-view training for kids.",
   "start_url": "./",
   "scope": "./",

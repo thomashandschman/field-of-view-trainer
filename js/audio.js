@@ -2,7 +2,7 @@ import { state } from './store.js';
 import { getLang, t } from './i18n.js';
 
 // Sound effects are synthesised. Spoken lines are pre-recorded German clips
-// (ElevenLabs voice "Carlotta") in audio/de/, played through Web Audio so
+// (ElevenLabs voice "Timon") in audio/de/, played through Web Audio so
 // they start instantly on iOS once the first tap has unlocked audio.
 let ctx = null;
 

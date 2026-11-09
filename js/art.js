@@ -2,7 +2,7 @@
 // drawn around them on the canvas.
 
 export const CRITTERS = ['fox', 'wolf', 'shark', 'panther', 'eagle', 'raccoon'];
-export const SPRITES = ['owl', 'firefly', 'star', ...CRITTERS, 'player', 'hoop', 'ball'];
+export const SPRITES = ['owl', 'firefly', 'star', 'medal', ...CRITTERS, 'player', 'hoop', 'ball'];
 
 const img = {};
 export let background = null;

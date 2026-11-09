@@ -240,7 +240,7 @@ export class PursuitGame extends BaseGame {
     ctx.shadowColor = '#d8ff7a'; ctx.shadowBlur = 14;
     ctx.fillStyle = grad; roundRect(ctx, jx, jy, Math.max(jh, jw * this.jar), jh, 7); ctx.globalAlpha = this.jar > 0.01 ? 1 : 0.25; ctx.fill();
     ctx.restore();
-    sprite(ctx, 'star', jx + jw + 26, jy + jh / 2, 34, { alpha: 0.5 + 0.5 * this.jar });
+    sprite(ctx, 'medal', jx + jw + 26, jy + jh / 2, 34, { alpha: 0.5 + 0.5 * this.jar });
   }
 }
 

@@ -1,4 +1,4 @@
-# Glühwürmchen-Augen (Firefly Eyes)
+# Augen-Gym (Firefly Eyes)
 
 Eye-movement and field-of-view practice games for a child, using the selfie camera. One web app runs on iPhone, iPad and Mac in Safari. Tracking runs on the device, and nothing is uploaded.
 
@@ -8,11 +8,11 @@ Eye-movement and field-of-view practice games for a child, using the selfie came
 |---|---|
 | Head stays still | The 3D head pose from MediaPipe Face Landmarker is compared with a baseline taken during calibration. If the head turns or shifts more than the tolerance (5°, 8° or 12°), the game freezes and shows "Statue!". If the head then rests about 1.5 s at a new place, that place is adopted and the gaze is re-aimed with a short "look at Ollie" (over 18° away: full recalibration). Every round also starts with this short re-centring, so sitting differently between rounds never locks the game. |
 | Eye movement | Iris position (landmarks 468/473 relative to the eye corners) is combined with the eye-look blendshapes. A 9-star calibration at the start of each session maps these to screen positions. |
-| Engaging the eyes | **Basketball** combines both: the eyes follow the bouncing ball while the player dribbles across the court (pursuit); when the shot meter is full a hoop lights up at the edge, and looking at it makes the player shoot (saccade), with 2 or 3 points per basket. A short picture guide explains it before each round, and on-screen hints ("Augen auf den Ball!", "Schau zum leuchtenden Korb!", a dotted flight path) help during play. **Firefly Chase** trains smooth pursuit: the firefly only moves while the eyes follow it. **Eye Gym** (Augen Gym, formerly Ball-Hüpfer) trains saccades: look from the owl to a bouncing basketball at the edge, then back. **Pendulum Catch** (Pendel-Fänger): a basket on a rope swings to wherever the eyes look; basketballs and golden stars drop from alternating sides, so the eyes jump out and ride them down. Catches build combos (×2, ×3, ×5) with banners, fireworks and floating points; golden stars give +50. **Secret Spotter** trains peripheral detection: eyes stay on the owl, an animal avatar (fox, wolf, shark, panther, eagle, raccoon) flashes at the side, and the child taps that side. Looking at it counts as peeking. |
-| Which games show | Parent area → Settings → "Spiele auf dem Startbildschirm". By default only Augen Gym is on; at least one game always stays on. With a single game the home screen shows one big card. |
+| Engaging the eyes | **Basketball** combines both: the eyes follow the bouncing ball while the player dribbles across the court (pursuit); when the shot meter is full a hoop lights up at the edge, and looking at it makes the player shoot (saccade), with 2 or 3 points per basket. A short picture guide explains it before each round, and on-screen hints ("Augen auf den Ball!", "Schau zum leuchtenden Korb!", a dotted flight path) help during play. **Firefly Chase** trains smooth pursuit: the firefly only moves while the eyes follow it. **Ball Hop** (Ball-Hüpfer) trains saccades: look from the owl to a bouncing basketball at the edge, then back. **Pendulum Catch** (Pendel-Fänger): a basket on a rope swings to wherever the eyes look; basketballs and golden stars drop from alternating sides, so the eyes jump out and ride them down. Catches build combos (×2, ×3, ×5) with banners, fireworks and floating points; golden stars give +50. **Secret Spotter** trains peripheral detection: eyes stay on the owl, an animal avatar (fox, wolf, shark, panther, eagle, raccoon) flashes at the side, and the child taps that side. Looking at it counts as peeking. |
+| Which games show | Parent area → Settings → "Spiele auf dem Startbildschirm". By default only Ball-Hüpfer is on; at least one game always stays on. With a single game the home screen shows one big card. |
 | Gradual progress | "Reach" (how far from centre targets appear) is tracked separately for left, right, up and down. It grows after repeated hits and shrinks after misses. Firefly speed and how long the bug stays visible also adapt. |
 | Short sessions | Rounds of 45 to 120 s, an eye break after each round (eyes closed for 5 s, detected by the camera), and a daily minute limit. |
-| Motivation | Stars, and a sticker book of 27 stickers (each character in three colours, one per 12 stars). Every spoken line is a recorded German clip, and there are sounds. |
+| Motivation | Medals, and a sticker book of 27 stickers (each avatar in three colours, one per 12 medals). Every spoken line is a recorded German clip (ElevenLabs voice "Timon": young, energetic, gaming-style), and there are sounds. |
 | Parent area | Press and hold the button at the bottom of the home screen. It shows reach per direction (and estimated degrees if the screen width is entered), a session log, CSV export for the physio, and all settings. |
 
 ## Language, voice and art
@@ -20,8 +20,8 @@ Eye-movement and field-of-view practice games for a child, using the selfie came
 - The app is in German by default. English is still available in the parent area, where it uses the device's own voice.
 - All clips are decoded when the page loads, so the first sentence is never spoken by the device's own voice.
 - Spoken lines never cut each other off: they queue, and the eye-break count waits for each number to finish.
-- The spoken lines are 30 German clips recorded with the ElevenLabs voice "Carlotta – Children's Stories" (`audio/de/*.mp3`). To change a line, regenerate that clip and keep the file name.
-- The characters (Ollie the owl, the firefly, the star and six critters) and the night-meadow background were generated with ElevenLabs image models, with backgrounds removed (`img/`). Glow, sparkles and motion are drawn live on top of them.
+- The spoken lines are 35 German clips recorded with the ElevenLabs voice "Timon – Energetic and Clear" (eleven_v4) (`audio/de/*.mp3`). To change a line, regenerate that clip and keep the file name.
+- The characters (Ollie the owl in streetwear, the firefly, the star, the medal and six animal avatars) and the night-meadow background were generated with ElevenLabs image models, with backgrounds removed (`img/`). Glow, sparkles and motion are drawn live on top of them.
 
 ## Run it
 
