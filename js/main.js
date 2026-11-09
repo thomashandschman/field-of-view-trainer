@@ -170,7 +170,10 @@ function renderHome() {
   const limitReached = minutesToday() >= state.settings.dailyMin;
   $('#daily-note').hidden = !limitReached;
   $('#daily-note').textContent = t('dailyDone');
-  document.querySelectorAll('.game-card').forEach((b) => { b.disabled = limitReached; });
+  const on = state.settings.games;
+  const cards = [...document.querySelectorAll('.game-card')];
+  cards.forEach((b) => { b.disabled = limitReached; b.hidden = !on[b.dataset.game]; });
+  document.querySelector('.cards').classList.toggle('single', cards.filter((b) => !b.hidden).length === 1);
   show('home');
 }
 
@@ -670,6 +673,7 @@ function renderSettings() {
     if (el.type === 'checkbox') el.checked = !!v;
     else el.value = v;
   });
+  document.querySelectorAll('#game-vis [data-game]').forEach((el) => { el.checked = !!s.games[el.dataset.game]; });
   ['left', 'right', 'up', 'down'].forEach((d) => {
     $('#reach-' + d).value = Math.round(state.progress.reach[d] * 100);
     $('#reach-' + d + '-out').textContent = Math.round(state.progress.reach[d] * 100) + '%';
@@ -678,7 +682,11 @@ function renderSettings() {
 
 $('#settings-form').addEventListener('input', (e) => {
   const el = e.target;
-  if (el.name) {
+  if (el.dataset.game) {
+    const g = state.settings.games;
+    g[el.dataset.game] = el.checked;
+    if (!Object.values(g).some(Boolean)) { g[el.dataset.game] = true; el.checked = true; }
+  } else if (el.name) {
     state.settings[el.name] = el.type === 'checkbox' ? el.checked : (el.type === 'number' || el.tagName === 'SELECT' && /^\d+$/.test(el.value) ? (el.value === '' ? '' : +el.value) : el.value);
     if (el.name === 'lang') { setLang(el.value); applyI18n(); renderParent(); }
   } else if (el.id?.startsWith('reach-')) {

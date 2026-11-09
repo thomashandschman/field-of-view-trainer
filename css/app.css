@@ -113,7 +113,7 @@ img { max-width: 100%; }
 .tagline { margin: 2px 0 0; color: var(--muted); font-weight: 600; }
 .home-head .star-pill { margin-left: auto; }
 
-.cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 18px; row-gap: 56px; padding-top: 34px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 18px 18px; row-gap: 56px; padding-top: 34px; }
 @media (max-width: 900px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) { .cards { grid-template-columns: 1fr; } }
 .game-card {
@@ -156,6 +156,14 @@ img { max-width: 100%; }
 .basket .card-art img.player { position: absolute; left: 0; bottom: 0; width: 72%; height: auto; }
 .basket .card-art img.ball { position: absolute; left: 62%; bottom: 0; width: 22%; height: auto; animation: dribble .62s cubic-bezier(.4,0,.6,1) infinite alternate; }
 .basket .card-title { font-size: 2.3rem; }
+/* only one game switched on: give it a big centred card */
+.cards.single .game-card:not(.basket) { grid-column: 1 / -1; justify-self: center; width: min(100%, 520px); min-height: 300px; padding-top: 170px; text-align: center; }
+.cards.single .game-card:not(.basket) .card-art { width: 240px; height: 210px; top: -60px; }
+.cards.single .game-card:not(.basket) .card-title { font-size: 2.4rem; }
+.cards.single .game-card:not(.basket) .card-play { justify-self: center; }
+.game-vis { grid-column: 1 / -1; border: 1px solid var(--line); border-radius: 16px; padding: 12px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px 18px; }
+.game-vis legend { padding: 0 6px; color: var(--muted); }
+.game-vis .note { grid-column: 1 / -1; margin: 0; }
 @keyframes dribble { from { transform: translateY(-58px) rotate(0deg); } to { transform: translateY(0) rotate(120deg) scaleY(.92); } }
 .pursuit .card-art img { animation: flutter 3.6s ease-in-out infinite; }
 .saccade .card-art img { width: 64%; height: 64%; animation: hop 1.2s cubic-bezier(.3,1.4,.5,1) infinite; }

@@ -13,6 +13,8 @@ export const DEFAULT_SETTINGS = {
   sound: true,
   debugGaze: false,
   screenCm: '',
+  // Which games show on the home screen. By default only Augen Gym.
+  games: { saccade: true, basket: false, pendel: false, pursuit: false, spotter: false },
 };
 
 // Reach = how far from centre a target appears, as a fraction of the
@@ -33,13 +35,13 @@ function load() {
   try {
     const raw = JSON.parse(localStorage.getItem(KEY) || '{}');
     return {
-      settings: { ...DEFAULT_SETTINGS, ...(raw.settings || {}) },
+      settings: { ...DEFAULT_SETTINGS, ...(raw.settings || {}), games: { ...DEFAULT_SETTINGS.games, ...(raw.settings?.games || {}) } },
       progress: { ...DEFAULT_PROGRESS, ...(raw.progress || {}), reach: { ...DEFAULT_PROGRESS.reach, ...(raw.progress?.reach || {}) } },
       sessions: raw.sessions || [],
       calibration: raw.calibration || null,
     };
   } catch {
-    return { settings: { ...DEFAULT_SETTINGS }, progress: structuredClone(DEFAULT_PROGRESS), sessions: [], calibration: null };
+    return { settings: structuredClone(DEFAULT_SETTINGS), progress: structuredClone(DEFAULT_PROGRESS), sessions: [], calibration: null };
   }
 }
 
@@ -87,7 +89,7 @@ export function nudgeReach(dir, delta) {
 }
 
 // Sticker book: every illustrated character in three colourways (27 stickers).
-const STICKER_ART = ['owl', 'firefly', 'star', 'ladybug', 'butterfly', 'frog', 'hedgehog', 'bee', 'squirrel'];
+const STICKER_ART = ['owl', 'fox', 'wolf', 'shark', 'panther', 'eagle', 'raccoon', 'ball', 'star'];
 export const STICKERS = [0, 1, 2].flatMap((v) => STICKER_ART.map((k) => ({ k, v })));
 export const STICKER_FILTERS = ['none', 'hue-rotate(150deg) saturate(1.2)', 'sepia(1) saturate(4) hue-rotate(-12deg) brightness(1.15)'];
 export const STARS_PER_STICKER = 12;

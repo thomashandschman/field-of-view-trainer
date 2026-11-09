@@ -1,8 +1,8 @@
 // Illustrated sprites (img/*.png) plus the glow, sparkle and motion effects
 // drawn around them on the canvas.
 
-export const SPRITES = ['owl', 'firefly', 'star', 'ladybug', 'butterfly', 'frog', 'hedgehog', 'bee', 'squirrel', 'player', 'hoop', 'ball'];
-export const CRITTERS = ['ladybug', 'butterfly', 'frog', 'hedgehog', 'bee', 'squirrel'];
+export const CRITTERS = ['fox', 'wolf', 'shark', 'panther', 'eagle', 'raccoon'];
+export const SPRITES = ['owl', 'firefly', 'star', ...CRITTERS, 'player', 'hoop', 'ball'];
 
 const img = {};
 export let background = null;

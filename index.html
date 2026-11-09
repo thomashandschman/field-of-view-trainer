@@ -57,12 +57,12 @@
     </button>
     <button class="game-card saccade" data-game="saccade" id="card-saccade">
       <span class="card-art" aria-hidden="true"><span class="card-glow"></span><img src="img/ball.png" alt=""></span>
-      <span class="card-title" data-i18n="gameSaccade">Ball-Hüpfer</span>
+      <span class="card-title" data-i18n="gameSaccade">Augen Gym</span>
       <span class="card-hint" data-i18n="gameSaccadeHint"></span>
       <span class="card-play" aria-hidden="true">▶</span>
     </button>
     <button class="game-card spotter" data-game="spotter" id="card-spotter">
-      <span class="card-art" aria-hidden="true"><span class="card-glow"></span><img class="peek" src="img/ladybug.png" alt=""></span>
+      <span class="card-art" aria-hidden="true"><span class="card-glow"></span><img class="peek" src="img/fox.png" alt=""></span>
       <span class="card-title" data-i18n="gameSpotter">Geheim-Späher</span>
       <span class="card-hint" data-i18n="gameSpotterHint"></span>
       <span class="card-play" aria-hidden="true">▶</span>
@@ -202,6 +202,15 @@
       <label class="check"><input type="checkbox" name="sound" id="s-sound"> <span data-i18n="sSound">Sounds</span></label>
       <label class="check"><input type="checkbox" name="allowTap" id="s-tap"> <span data-i18n="sTap">Accept tapping</span></label>
       <label class="check"><input type="checkbox" name="debugGaze" id="s-debug"> <span data-i18n="sDebug">Show eye-tracking dot</span></label>
+      <fieldset class="game-vis" id="game-vis">
+        <legend data-i18n="sGames">Spiele auf dem Startbildschirm</legend>
+        <label class="check"><input type="checkbox" data-game="saccade"> <span data-i18n="gameSaccade">Augen Gym</span></label>
+        <label class="check"><input type="checkbox" data-game="basket"> <span data-i18n="gameBasket">Basketball</span></label>
+        <label class="check"><input type="checkbox" data-game="pendel"> <span data-i18n="gamePendel">Pendel-Fänger</span></label>
+        <label class="check"><input type="checkbox" data-game="pursuit"> <span data-i18n="gamePursuit">Glühwürmchen-Jagd</span></label>
+        <label class="check"><input type="checkbox" data-game="spotter"> <span data-i18n="gameSpotter">Geheim-Späher</span></label>
+        <p class="note" data-i18n="sGamesNote"></p>
+      </fieldset>
       <fieldset class="reach-sliders">
         <legend data-i18n="sReachManual">Reach per direction</legend>
         <label><span data-i18n="left">Left</span><input type="range" id="reach-left" min="15" max="95"><output id="reach-left-out"></output></label>
