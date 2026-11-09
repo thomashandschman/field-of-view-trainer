@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Glühwürmchen-Augen</title>
+<meta name="description" content="Playful eye-movement and field-of-view training for kids, using the selfie camera.">
+<meta name="theme-color" content="#0b1633">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Glühwürmchen-Augen">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body data-screen="home">
+
+<!-- Camera feed for tracking. Kept in the DOM (not display:none) so iOS keeps delivering frames. -->
+<video id="cam" playsinline muted autoplay></video>
+
+<!-- HOME -->
+<main id="home" class="screen home">
+  <header class="home-head">
+    <img class="hero-owl" src="img/owl.png" alt="">
+    <div class="title-block">
+      <h1 data-i18n="appName">Glühwürmchen-Augen</h1>
+      <p class="tagline" data-i18n="tagline">Augenspiele mit Ollie der Eule</p>
+    </div>
+    <div class="star-pill" aria-label="Sterne"><img src="img/star.png" alt=""><span id="stars-total-n">0</span></div>
+  </header>
+
+  <p id="daily-note" class="daily-note" hidden></p>
+
+  <section class="cards">
+    <button class="game-card basket" data-game="basket" id="card-basket">
+      <span class="card-art" aria-hidden="true"><span class="card-glow"></span><img class="player" src="img/player.png" alt=""><img class="ball" src="img/ball.png" alt=""></span>
+      <span class="card-title" data-i18n="gameBasket">Basketball</span>
+      <span class="card-hint" data-i18n="gameBasketHint"></span>
+      <span class="card-play" aria-hidden="true">▶</span>
+    </button>
+    <button class="game-card pendel" data-game="pendel" id="card-pendel">
+      <span class="card-art" aria-hidden="true"><span class="card-glow"></span><span class="pendel-pic"><i class="rope"></i><i class="rim"></i></span><img class="drop" src="img/ball.png" alt=""></span>
+      <span class="card-title" data-i18n="gamePendel">Pendel-Fänger</span>
+      <span class="card-hint" data-i18n="gamePendelHint"></span>
+      <span class="card-play" aria-hidden="true">▶</span>
+    </button>
+    <button class="game-card pursuit" data-game="pursuit" id="card-pursuit">
+      <span class="card-art" aria-hidden="true"><span class="card-glow"></span><img src="img/firefly.png" alt=""></span>
+      <span class="card-title" data-i18n="gamePursuit">Glühwürmchen-Jagd</span>
+      <span class="card-hint" data-i18n="gamePursuitHint"></span>
+      <span class="card-play" aria-hidden="true">▶</span>
+    </button>
+    <button class="game-card saccade" data-game="saccade" id="card-saccade">
+      <span class="card-art" aria-hidden="true"><span class="card-glow"></span><img src="img/ball.png" alt=""></span>
+      <span class="card-title" data-i18n="gameSaccade">Ball-Hüpfer</span>
+      <span class="card-hint" data-i18n="gameSaccadeHint"></span>
+      <span class="card-play" aria-hidden="true">▶</span>
+    </button>
+    <button class="game-card spotter" data-game="spotter" id="card-spotter">
+      <span class="card-art" aria-hidden="true"><span class="card-glow"></span><img class="peek" src="img/ladybug.png" alt=""></span>
+      <span class="card-title" data-i18n="gameSpotter">Geheim-Späher</span>
+      <span class="card-hint" data-i18n="gameSpotterHint"></span>
+      <span class="card-play" aria-hidden="true">▶</span>
+    </button>
+  </section>
+
+  <section class="sticker-book">
+    <div class="sticker-head">
+      <h2 data-i18n="stickers">Stickerbuch</h2>
+      <div class="next-sticker"><span id="stars-next" class="muted"></span><span id="stars-meter" class="meter" aria-hidden="true"><i></i></span></div>
+    </div>
+    <div id="sticker-row" class="sticker-row"></div>
+  </section>
+
+  <footer class="home-foot">
+    <button id="parent-btn" class="parent-btn"><span class="ring"></span><span aria-hidden="true">⚙︎</span> <span data-i18n="parents">Für Eltern gedrückt halten</span></button>
+  </footer>
+</main>
+
+<!-- SETUP -->
+<main id="setup" class="screen setup" hidden>
+  <h2 data-i18n="setupTitle">Get ready</h2>
+  <div class="preview-wrap"><img class="setup-owl" src="img/owl.png" alt="">
+    <video id="preview" playsinline muted autoplay></video>
+    <div class="face-guide" aria-hidden="true"></div>
+  </div>
+  <p id="setup-status" class="status" role="status"></p>
+  <p class="setup-hint" data-i18n="setupHint"></p>
+  <p id="rotate-hint" class="setup-hint" data-i18n="rotateHint" hidden></p>
+  <div class="row">
+    <button id="setup-back" class="btn ghost" data-i18n="back">Back</button>
+    <button id="setup-start" class="btn big" data-i18n="setupStart" disabled>Start</button>
+  </div>
+</main>
+
+<!-- PLAY (calibration, games, eye break) -->
+<section id="play" class="screen play" hidden>
+  <canvas id="stage"></canvas>
+  <div id="hud" class="hud" hidden>
+    <div id="hud-stars" class="hud-stars star-pill small"><img src="img/star.png" alt=""><span id="hud-stars-n">0</span></div>
+    <div id="hud-time" class="hud-time" aria-hidden="true"><i></i></div>
+    <button id="pause-btn" class="hud-pause" aria-label="Pause">❚❚</button>
+  </div>
+  <div id="toast" class="toast" hidden></div>
+  <div id="statue" class="statue" hidden>
+    <div class="statue-card"><img class="statue-owl" src="img/owl.png" alt=""><span id="statue-text"></span></div>
+  </div>
+  <div id="break-ui" class="break-ui" hidden>
+    <h2 data-i18n="breakTitle">Eye break</h2>
+    <div id="break-moon" class="moon" aria-hidden="true"><img src="img/owl.png" alt=""></div>
+    <p data-i18n="breakSay"></p>
+    <button id="break-skip" class="btn ghost" data-i18n="breakSkip">Skip</button>
+  </div>
+  <div id="intro" class="intro" hidden>
+    <div class="intro-card">
+      <h2 id="intro-title"></h2>
+      <ol id="intro-steps" class="intro-steps"></ol>
+      <button id="intro-go" class="btn big" data-i18n="introGo">Los geht's!</button>
+    </div>
+  </div>
+  <div id="pause-menu" class="pause-menu" hidden>
+    <div class="pause-card">
+      <h2 data-i18n="pause">Paused</h2>
+      <button id="resume-btn" class="btn big" data-i18n="resume">Resume</button>
+      <button id="recal-btn" class="btn ghost" data-i18n="recalibrate">Neu kalibrieren</button>
+      <button id="quit-btn" class="btn ghost" data-i18n="quit">Stop</button>
+    </div>
+  </div>
+</section>
+
+<!-- ROUND DONE -->
+<main id="done" class="screen done" hidden>
+  <img class="done-owl" src="img/owl.png" alt="">
+  <h2 data-i18n="roundDone">Round done!</h2>
+  <p class="done-stars star-pill big"><img src="img/star.png" alt=""><span>×</span><span id="done-stars-n">0</span></p>
+  <p id="done-sticker" class="done-sticker" hidden></p>
+  <p id="done-limit" class="daily-note" hidden></p>
+  <div class="row">
+    <button id="done-home" class="btn ghost" data-i18n="home">Home</button>
+    <button id="done-again" class="btn big" data-i18n="playAgain">Another round</button>
+  </div>
+</main>
+
+<!-- PARENT AREA -->
+<main id="parent" class="screen parent" hidden>
+  <header class="parent-head">
+    <button id="parent-back" class="btn ghost small" data-i18n="back">Back</button>
+    <h2 data-i18n="parentTitle">Parent area</h2>
+    <span id="today-min" class="muted"></span>
+  </header>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="progress" aria-selected="true" data-i18n="tabProgress">Progress</button>
+    <button class="tab" role="tab" data-tab="settings" aria-selected="false" data-i18n="tabSettings">Settings</button>
+  </div>
+
+  <section id="tab-progress" class="panel">
+    <h3 data-i18n="reachTitle">Current reach</h3>
+    <div id="reach-grid" class="reach-grid"></div>
+    <p class="note" data-i18n="reachNote"></p>
+    <p id="speed-line" class="note mono"></p>
+    <svg id="trend" class="trend" viewBox="0 0 300 80" preserveAspectRatio="none" hidden></svg>
+    <p class="legend"><span class="key h"></span> <span data-i18n="focusH">Horizontal</span> <span class="key v"></span> <span data-i18n="focusV">Vertical</span></p>
+    <h3 data-i18n="sessions">Sessions</h3>
+    <div class="table-wrap">
+      <table class="sessions">
+        <thead><tr>
+          <th data-i18n="colDate">Date</th><th data-i18n="colGame">Game</th><th data-i18n="colMin">Min</th><th data-i18n="colScore">Hits</th>
+          <th data-i18n="colAcc">Accuracy</th><th data-i18n="colRt">Reaction</th><th data-i18n="colHead">Head moves</th><th><span data-i18n="colReach">Reach</span> L/R/U/D</th>
+        </tr></thead>
+        <tbody id="sessions-body"></tbody>
+      </table>
+    </div>
+    <div class="row left">
+      <button id="export-btn" class="btn" data-i18n="exportCsv">Export CSV</button>
+      <button id="reset-btn" class="btn danger" data-i18n="resetAll">Reset all progress</button>
+    </div>
+    <p class="note" data-i18n="disclaimer"></p>
+  </section>
+
+  <section id="tab-settings" class="panel" hidden>
+    <form id="settings-form" class="settings">
+      <label><span data-i18n="sLang">Language</span>
+        <select name="lang" id="s-lang"><option value="auto">Auto</option><option value="de">Deutsch</option><option value="en">English</option></select></label>
+      <label><span data-i18n="sFocus">Training focus</span>
+        <select name="focus" id="s-focus"><option value="both" data-i18n="focusBoth">Both</option><option value="h" data-i18n="focusH">Horizontal</option><option value="v" data-i18n="focusV">Vertical</option></select></label>
+      <label><span data-i18n="sRound">Round length</span>
+        <select name="roundSec" id="s-round"><option value="45">45</option><option value="60">60</option><option value="90">90</option><option value="120">120</option></select></label>
+      <label><span data-i18n="sDaily">Daily limit</span>
+        <select name="dailyMin" id="s-daily"><option value="5">5</option><option value="8">8</option><option value="12">12</option><option value="15">15</option><option value="20">20</option><option value="30">30</option></select></label>
+      <label><span data-i18n="sHead">Head stillness</span>
+        <select name="headTol" id="s-head"><option value="strict" data-i18n="strict">Strict</option><option value="normal" data-i18n="normal">Normal</option><option value="relaxed" data-i18n="relaxed">Relaxed</option></select></label>
+      <label><span data-i18n="sGaze">Eye-tracking tolerance</span>
+        <select name="gazeTol" id="s-gaze"><option value="strict" data-i18n="strict">Strict</option><option value="normal" data-i18n="normal">Normal</option><option value="relaxed" data-i18n="relaxed">Relaxed</option></select></label>
+      <label><span data-i18n="sScreen">Screen width (cm)</span>
+        <input type="number" name="screenCm" id="s-screen" min="5" max="80" step="0.5" inputmode="decimal"></label>
+      <label class="check"><input type="checkbox" name="voice" id="s-voice"> <span data-i18n="sVoice">Spoken instructions</span></label>
+      <label class="check"><input type="checkbox" name="sound" id="s-sound"> <span data-i18n="sSound">Sounds</span></label>
+      <label class="check"><input type="checkbox" name="allowTap" id="s-tap"> <span data-i18n="sTap">Accept tapping</span></label>
+      <label class="check"><input type="checkbox" name="debugGaze" id="s-debug"> <span data-i18n="sDebug">Show eye-tracking dot</span></label>
+      <fieldset class="reach-sliders">
+        <legend data-i18n="sReachManual">Reach per direction</legend>
+        <label><span data-i18n="left">Left</span><input type="range" id="reach-left" min="15" max="95"><output id="reach-left-out"></output></label>
+        <label><span data-i18n="right">Right</span><input type="range" id="reach-right" min="15" max="95"><output id="reach-right-out"></output></label>
+        <label><span data-i18n="up">Up</span><input type="range" id="reach-up" min="15" max="95"><output id="reach-up-out"></output></label>
+        <label><span data-i18n="down">Down</span><input type="range" id="reach-down" min="15" max="95"><output id="reach-down-out"></output></label>
+      </fieldset>
+    </form>
+  </section>
+</main>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
