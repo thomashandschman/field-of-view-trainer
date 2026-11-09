@@ -12,6 +12,7 @@ export const DEFAULT_SETTINGS = {
   voice: true,
   sound: true,
   debugGaze: false,
+  headComp: true,         // fold small head movements into the gaze point
   screenCm: '',
   // Which games show on the home screen. By default only Ball-Hüpfer.
   games: { saccade: true, basket: false, pendel: false, pursuit: false, spotter: false },

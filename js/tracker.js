@@ -73,6 +73,10 @@ export class Tracker {
     this.recent = [];
     this.settled = false;
     this.calibPose = null;
+    // Head-movement compensation: small head turns and shifts are folded
+    // into the gaze point, so it stays on target when the head wobbles.
+    this.headComp = true;
+    this.screenHalfCm = { x: 12, y: 8 }; // set by the app from the screen size
   }
 
   async startCamera() {
@@ -157,9 +161,12 @@ export class Tracker {
 
     // --- Gaze in screen space (-1..1 from centre), once calibrated
     if (this.calib && !blink) {
+      const nf = normFeat(feat, this.calib.norm);
+      const hc = this.headCompensation(frame);
+      frame.headComp = hc;
       const raw = {
-        x: apply(this.calib.wx, normFeat(feat, this.calib.norm)) + this.offset.x,
-        y: apply(this.calib.wy, normFeat(feat, this.calib.norm)) + this.offset.y,
+        x: apply(this.calib.wx, nf) * hc.scale + hc.x + this.offset.x,
+        y: apply(this.calib.wy, nf) * hc.scale + hc.y + this.offset.y,
       };
       const k = 0.35;
       this.smooth = this.smooth ? { x: this.smooth.x + (raw.x - this.smooth.x) * k, y: this.smooth.y + (raw.y - this.smooth.y) * k } : raw;
@@ -172,6 +179,33 @@ export class Tracker {
     this._updateHead(now, true);
     if (dist > 10 && dist < 200 && this.distances.length < 5000) this.distances.push(dist);
     return frame;
+  }
+
+  // How far the head has moved since calibration, expressed as a shift of
+  // the gaze point in screen units (-1..1). The calibration maps the eyes'
+  // direction *inside the head* to the screen as seen from the calibration
+  // pose; when the head turns by θ, the same eye direction lands about
+  // D·tan(θ) further over, and when it shifts sideways the whole line of
+  // sight moves with it. MediaPipe's metric space: x = image right (the
+  // child's left), y = up, the face's forward axis points at the camera.
+  headCompensation(f) {
+    const c = this.calibPose;
+    if (!this.headComp || !c || !f.face) return { x: 0, y: 0, scale: 1 };
+    const clamp = (v, a) => Math.max(-a, Math.min(a, v));
+    // Distance comes from an adult face model; a child's smaller face reads
+    // farther away, so be a little conservative.
+    const D = Math.max(18, Math.min(90, f.dist || 40)) * 0.85;
+    const Dref = Math.max(18, Math.min(90, c.dist || f.dist || 40)) * 0.85;
+    const dyaw = clamp(f.yaw - c.yaw, 15) / DEG;
+    const dpitch = clamp(f.pitch - c.pitch, 15) / DEG;
+    const dtx = clamp(f.tx - c.tx, 8), dty = clamp(f.ty - c.ty, 8);
+    const cmX = -dtx - D * Math.tan(dyaw);   // + = towards screen right
+    const cmY = -dty - D * Math.tan(dpitch); // + = towards screen bottom
+    return {
+      x: cmX / this.screenHalfCm.x,
+      y: cmY / this.screenHalfCm.y,
+      scale: Math.max(0.7, Math.min(1.4, D / Dref)), // closer = eyes turn more per cm
+    };
   }
 
   // Head stillness with hysteresis, relative to the calibrated baseline.
@@ -243,6 +277,7 @@ export class Tracker {
       pitch: median(samples.map((s) => s.pitch)),
       tx: median(samples.map((s) => s.tx)),
       ty: median(samples.map((s) => s.ty)),
+      dist: median(samples.map((s) => s.dist || 40)),
     };
     this.headMoved = false;
     this.settled = false;

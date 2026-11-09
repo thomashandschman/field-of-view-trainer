@@ -84,6 +84,10 @@ function resize() {
   const margin = Math.max(36, Math.min(env.W, env.H) * 0.07);
   env.cx = env.W / 2; env.cy = env.H / 2;
   env.hw = env.W / 2 - margin; env.hh = env.H / 2 - margin;
+  // Physical size of one CSS pixel: from the parent's screen-width setting if
+  // given, otherwise ~0.019 cm (iPhone, iPad and Mac are all close to this).
+  const cmPerPx = parseFloat(state.settings.screenCm) > 0 ? parseFloat(state.settings.screenCm) / env.W : 0.019;
+  tracker.screenHalfCm = { x: env.hw * cmPerPx, y: env.hh * cmPerPx };
   buildBackground();
 }
 function safeInset(side) {
@@ -326,6 +330,7 @@ let roundStart = 0;
 function startRound() {
   if (minutesToday() >= state.settings.dailyMin) { renderHome(); return; }
   tracker.headTolDeg = { strict: 5, normal: 8, relaxed: 12 }[state.settings.headTol] || 8;
+  tracker.headComp = state.settings.headComp !== false;
   tracker.resetSessionStats();
   sessionStars = 0; newStickers = [];
   $('#hud-stars-n').textContent = '0';
@@ -689,6 +694,8 @@ $('#settings-form').addEventListener('input', (e) => {
   } else if (el.name) {
     state.settings[el.name] = el.type === 'checkbox' ? el.checked : (el.type === 'number' || el.tagName === 'SELECT' && /^\d+$/.test(el.value) ? (el.value === '' ? '' : +el.value) : el.value);
     if (el.name === 'lang') { setLang(el.value); applyI18n(); renderParent(); }
+    if (el.name === 'headComp') tracker.headComp = el.checked;
+    if (el.name === 'screenCm') resize();
   } else if (el.id?.startsWith('reach-')) {
     const d = el.id.split('-')[1];
     state.progress.reach[d] = clamp(+el.value / 100, 0.15, 0.95);
