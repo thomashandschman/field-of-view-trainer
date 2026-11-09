@@ -330,3 +330,80 @@ img { max-width: 100%; }
   .reach-grid { grid-template-columns: 1fr 140px 1fr; }
   .sticker-row { grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); }
 }
+
+/* ---------- Home on one screen in landscape (Mac, iPad, iPhone) ----------
+   Two columns: games left, sticker book right; everything scales with the
+   screen height so nothing needs scrolling. */
+@media (orientation: landscape) and (min-width: 640px) {
+  .home {
+    max-width: 1280px; height: 100dvh; overflow: hidden; box-sizing: border-box;
+    display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    grid-template-areas: "head head" "note note" "cards book" "foot foot";
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    gap: 0 clamp(16px, 3vw, 40px);
+    padding-top: max(10px, var(--sat), 2vh); padding-bottom: max(8px, var(--sab), 1.5vh);
+  }
+  .home-head { grid-area: head; }
+  .home .daily-note { grid-area: note; margin-top: 1vh; padding: 8px 14px; }
+  .home .cards { grid-area: cards; align-self: center; padding-top: clamp(28px, 7vh, 60px); row-gap: clamp(34px, 8vh, 56px); gap: clamp(10px, 1.6vw, 18px); grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+  .sticker-book { grid-area: book; align-self: center; padding: clamp(10px, 2.2vh, 20px) clamp(12px, 1.6vw, 20px); }
+  .home-foot { grid-area: foot; }
+  .hero-owl { width: clamp(44px, 12vh, 104px); height: clamp(44px, 12vh, 104px); }
+  .home h1 { font-size: clamp(1.5rem, min(5vw, 7.5vh), 3.4rem); }
+  .tagline { font-size: clamp(.78rem, 2.3vh, 1rem); }
+  .game-card { min-height: clamp(130px, 30vh, 250px); padding-top: clamp(60px, 15vh, 120px); }
+  .card-art { width: clamp(90px, 20vh, 170px); height: clamp(80px, 18vh, 150px); top: calc(-1 * clamp(20px, 5vh, 38px)); }
+  .game-card.basket { grid-column: 1 / -1; min-height: clamp(130px, 26vh, 230px); }
+  .basket .card-art { height: clamp(120px, 30vh, 270px); top: calc(-1 * clamp(24px, 6vh, 46px)); }
+  .basket .card-title { font-size: clamp(1.5rem, 4.5vh, 2.3rem); }
+  .cards.single .game-card:not(.basket) { min-height: clamp(160px, 46vh, 330px); padding-top: clamp(90px, 25vh, 190px); width: min(100%, 480px); }
+  .cards.single .game-card:not(.basket) .card-art { width: clamp(110px, 28vh, 240px); height: clamp(100px, 25vh, 210px); top: calc(-1 * clamp(24px, 7vh, 60px)); }
+  .cards.single .game-card:not(.basket) .card-title { font-size: clamp(1.6rem, 6vh, 2.4rem); }
+  .sticker-head h2 { font-size: clamp(1.1rem, 3.2vh, 1.5rem); }
+  .sticker-row {
+    --st: clamp(26px, calc((100dvh - 230px) / 4.9), 76px);
+    grid-template-columns: repeat(7, var(--st)); gap: clamp(4px, 1.1vh, 10px); margin-top: clamp(6px, 1.4vh, 14px); justify-content: center; max-width: none;
+  }
+  .sticker { border-radius: clamp(8px, 2vh, 18px); }
+  .parent-btn { padding: clamp(5px, 1vh, 10px) 16px; font-size: clamp(.78rem, 2.2vh, 1rem); }
+}
+/* Short landscape screens (iPhone sideways): compact cards, art beside the title. */
+@media (orientation: landscape) and (min-width: 640px) and (max-height: 520px) {
+  .home .cards { padding-top: 0; gap: 10px; row-gap: 10px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  .game-card, .game-card.basket, .cards.single .game-card:not(.basket) {
+    min-height: 0; padding: 12px 54px 12px 84px; text-align: left; width: 100%; background-position: center;
+  }
+  .card-art, .basket .card-art, .cards.single .game-card:not(.basket) .card-art { left: 8px; top: 50%; transform: translateY(-50%); width: 70px; height: 70px; }
+  .basket .card-art img.player { width: 80%; }
+  .card-title, .basket .card-title, .cards.single .game-card:not(.basket) .card-title { font-size: 1.15rem; }
+  .card-hint { font-size: .8rem; padding-right: 0; }
+  .card-play { width: 36px; height: 36px; right: 10px; bottom: 50%; transform: translateY(50%); }
+  .cards.single .game-card:not(.basket) .card-play { justify-self: auto; }
+  .cards.single .game-card:not(.basket) { padding-top: 22px; padding-bottom: 22px; }
+  .home-head .star-pill { transform: scale(.85); transform-origin: right center; }
+}
+@media (orientation: landscape) and (min-width: 640px) and (max-height: 520px) {
+  .home { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
+  .home .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .home .cards.single { grid-template-columns: 1fr; }
+  .cards:not(.single) .card-hint { display: none; }
+}
+/* Several games on in landscape: horizontal cards (art left, title right),
+   two per row, so up to five fit next to the sticker book. */
+@media (orientation: landscape) and (min-width: 640px) {
+  .home .cards:not(.single) { padding-top: 0; gap: clamp(8px, 1.6vh, 16px); row-gap: clamp(8px, 1.6vh, 16px); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cards:not(.single) .game-card, .cards:not(.single) .game-card.basket {
+    min-height: clamp(54px, 13vh, 120px); text-align: left; align-content: center;
+    padding: 8px clamp(44px, 6vh, 64px) 8px calc(clamp(52px, 11vh, 100px) + 16px);
+  }
+  .cards:not(.single) .card-art, .cards:not(.single) .basket .card-art {
+    left: 8px; top: 50%; transform: translateY(-50%); width: clamp(52px, 11vh, 100px); height: clamp(52px, 11vh, 100px); overflow: hidden; border-radius: 14px;
+  }
+  .cards:not(.single) .card-title, .cards:not(.single) .basket .card-title { font-size: clamp(1rem, 2.7vh, 1.4rem); }
+  .cards:not(.single) .card-hint { font-size: clamp(.75rem, 1.9vh, .95rem); padding-right: 0; }
+  .cards:not(.single) .card-play { width: clamp(30px, 5vh, 44px); height: clamp(30px, 5vh, 44px); right: 10px; bottom: 50%; transform: translateY(50%); font-size: 12px; }
+}
+@media (orientation: landscape) and (min-width: 640px) and (max-height: 520px) {
+  .cards:not(.single) .card-hint { display: none; }
+  .cards:not(.single) .card-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
