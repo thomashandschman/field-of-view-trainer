@@ -54,7 +54,7 @@ export function drawOwl(ctx, env, { glow: g = 0, wiggle = 0, alpha = 1 } = {}) {
   }
   const breathe = 1 + 0.018 * Math.sin(now / 520);
   const rot = wiggle ? Math.sin(now / 70) * 0.1 * wiggle : Math.sin(now / 1700) * 0.025;
-  if (!sprite(ctx, 'owl', cx, cy + Math.sin(now / 900) * s * 0.015, s, { rot, sx: breathe, sy: 2 - breathe, alpha })) {
+  if (!sprite(ctx, env.avatar || 'owl', cx, cy + Math.sin(now / 900) * s * 0.015, s, { rot, sx: breathe, sy: 2 - breathe, alpha })) {
     drawEmoji(ctx, '🦉', cx, cy, s * 0.6);
   }
 }
@@ -89,7 +89,12 @@ const Particles = Sparks;
 class BaseGame {
   constructor(env) {
     this.env = env;
-    this.tol = TOL[state.settings.gazeTol] || 1;
+    // Hit zones grow with the measured tracking error, so a less precise
+    // calibration (light, glasses, small face) never turns into missed targets.
+    const c = env.tracker?.calib;
+    const err = c && c.rmsX != null ? Math.max(c.rmsX, c.rmsY * 0.8) : 0.12;
+    this.acc = clamp(1 + (err - 0.12) * 2.2, 1, 1.6);
+    this.tol = (TOL[state.settings.gazeTol] || 1) * this.acc;
     this.particles = new Particles();
     this.stats = { trials: 0, hits: 0, rts: [], onTime: 0, total: 0, peeks: 0 };
   }
@@ -318,9 +323,17 @@ export class SaccadeGame extends BaseGame {
       }
       if (this.firstMove === null && along > L * 0.35) this.firstMove = this.phaseT;
       const hit = along > Math.max(0.15, L * (0.62 / this.tol)) && perp < 0.45 * this.tol;
-      this.dwell = hit ? this.dwell + dt : Math.max(0, this.dwell - dt);
+      // a brief flicker out of the zone (tracking jitter) does not reset the look
+      this.dwell = hit ? this.dwell + dt : Math.max(0, this.dwell - dt * 0.4);
       if (this.dwell > 0.22) this.success();
-      else if (this.phaseT > 3) this.fail();
+      else if (this.phaseT > 3 && !this.target.helped) {
+        // Not found yet: the ball hops a good bit closer and waits again.
+        this.target.helped = true;
+        this.target.v = { x: this.target.v.x * 0.65, y: this.target.v.y * 0.65 };
+        this.target.born = this.env.now;
+        this.phaseT = 0.8; this.dwell = 0;
+        sfx.appear(this.target.v.x);
+      } else if (this.phaseT > 3) this.fail();
     } else if (this.phase === 'return') {
       if (this.phaseT > 0.3) { this.phase = 'center'; this.phaseT = 0; this.centerHold = 0; this.wait = rand(0.1, 0.5); this.ollieFixReset(); }
     }
@@ -335,15 +348,21 @@ export class SaccadeGame extends BaseGame {
     sfx.pop(v.x);
     this.env.addStar(P.x, P.y);
     if (Math.random() < 0.35) this.env.praise();
-    this.streak[dir] = (this.streak[dir] || 0) + 1; this.fails[dir] = 0;
-    if (this.streak[dir] >= 2) { adjust(dir, 0.03); this.streak[dir] = 0; }
+    if (this.target.helped) {
+      // found after help: still a hit, but the distance should ease off a bit
+      this.fails[dir] = (this.fails[dir] || 0) + 0.5; this.streak[dir] = 0;
+      if (this.fails[dir] >= 2) { adjust(dir, -0.03); this.fails[dir] = 0; }
+    } else {
+      this.streak[dir] = (this.streak[dir] || 0) + 1; this.fails[dir] = 0;
+      if (this.streak[dir] >= 2) { adjust(dir, 0.03); this.streak[dir] = 0; }
+    }
     this.target = null;
     this.phase = 'return'; this.phaseT = 0;
   }
   fail() {
     const { dir, v } = this.target;
     this.stats.trials++;
-    sfx.miss(v.x);
+    sfx.soft?.(v.x); // no 'miss' buzzer: the ball just hops back
     this.fails[dir] = (this.fails[dir] || 0) + 1; this.streak[dir] = 0;
     if (this.fails[dir] >= 2) { adjust(dir, -0.04); this.fails[dir] = 0; }
     this.target = null;
@@ -409,7 +428,9 @@ export class SpotterGame extends BaseGame {
       const c = this.critter, L = len(c.v);
       if (gaze && !c.peeked) {
         const along = (gaze.x * c.v.x + gaze.y * c.v.y) / L;
-        if (along > L * 0.5 && this.phaseT > 0.12) c.peeked = true;
+        // only a clear, sustained look counts as peeking, not tracking jitter
+        c.peekT = along > L * Math.min(0.85, 0.6 * this.tol) && this.phaseT > 0.12 ? (c.peekT || 0) + dt : 0;
+        if (c.peekT > 0.15) c.peeked = true;
       }
       if (this.phaseT > 2.6 && !this.answered) this.resolve(null);
     } else if (this.phase === 'feedback') {

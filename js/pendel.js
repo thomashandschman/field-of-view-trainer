@@ -1,5 +1,5 @@
 // Pendel-Fänger: a basket hangs from a rope and swings like a pendulum to
-// wherever the eyes look. Basketballs (and now and then a golden star) drop
+// wherever the eyes look. Basketballs (and now and then a golden ball) drop
 // from the top, alternating sides, so the eyes jump out to them (saccade) and
 // ride them down (pursuit). Catching builds combos with big, showy points.
 import { state, clamp, nudgeReach } from './store.js';
@@ -80,7 +80,7 @@ export class PendelGame extends BaseGame {
       if (it.state === 'fall') {
         it.y += it.vy * dt; it.rot += dt * 4;
         if (it.seen === null && f.gaze && Math.abs(env.cx + f.gaze.x * env.hw - it.x) < env.hw * 0.25) it.seen = it.t;
-        const inRim = Math.abs(it.x - B.x) < rimW * 0.55;
+        const inRim = Math.abs(it.x - B.x) < rimW * 0.55 * Math.max(1, this.tol);
         if (it.y >= B.y - unit * 0.02 && it.y <= B.y + unit * 0.05 && inRim) this.catch(it, B);
         else if (it.y > B.y + unit * 0.07) this.miss(it);
       } else if (it.state === 'caught') {
@@ -195,7 +195,7 @@ export class PendelGame extends BaseGame {
       glow(ctx, it.x, it.y, size * 1.5, it.gold ? '255,220,90' : '255,150,60', 0.55 * alpha);
       if (it.gold) {
         for (let i = 0; i < 3; i++) { const a = env.now / 300 + i * 2.1; twinkle(ctx, it.x + Math.cos(a) * size * 0.8, it.y + Math.sin(a) * size * 0.8, size * 0.1, '#fff3c0', alpha, a); }
-        sprite(ctx, 'star', it.x, it.y, size, { rot: Math.sin(it.rot) * 0.2, alpha });
+        sprite(ctx, 'goldball', it.x, it.y, size, { rot: it.rot, alpha });
       } else sprite(ctx, 'ball', it.x, it.y, size, { rot: it.rot, alpha });
     }
 

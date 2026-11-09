@@ -46,6 +46,17 @@ export async function loadArt() {
     const i = await load(`img/${k}.png`);
     if (i) img[k] = trim(i);
   }));
+  // Golden basketball (Pendel-Fänger bonus): the ball tinted gold.
+  if (img.ball) {
+    const b = img.ball, c = document.createElement('canvas');
+    c.width = b.width; c.height = b.height;
+    const x = c.getContext('2d');
+    x.drawImage(b, 0, 0);
+    x.globalCompositeOperation = 'source-atop';
+    x.fillStyle = 'rgba(255, 205, 50, 0.62)'; x.fillRect(0, 0, c.width, c.height);
+    x.fillStyle = 'rgba(90, 60, 0, 0.25)'; x.fillRect(0, 0, c.width, c.height);
+    img.goldball = c;
+  }
   [background, arena] = await Promise.all([load('img/background.jpg'), load('img/arena.jpg')]);
 }
 

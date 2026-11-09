@@ -48,6 +48,24 @@ function fitLinear(X, y, lambda = 0.002) {
   return b.map((v, i) => v / (A[i][i] || 1e-9));
 }
 
+// One-Euro filter (Casiez et al. 2012): strong smoothing while the eyes
+// rest (no jitter), little lag when they jump (cut-off rises with speed).
+class OneEuro {
+  constructor(minCutoff = 0.6, beta = 1.2, dCutoff = 1.2) { Object.assign(this, { minCutoff, beta, dCutoff }); this.reset(); }
+  reset() { this.x = null; this.dx = 0; this.t = null; }
+  static alpha(cutoff, dt) { const r = 2 * Math.PI * cutoff * dt; return r / (r + 1); }
+  filter(v, tMs) {
+    if (this.x === null) { this.x = v; this.t = tMs; return v; }
+    const dt = Math.max(1 / 120, Math.min(0.2, (tMs - this.t) / 1000));
+    this.t = tMs;
+    const dx = (v - this.x) / dt;
+    this.dx += OneEuro.alpha(this.dCutoff, dt) * (dx - this.dx);
+    const cutoff = this.minCutoff + this.beta * Math.abs(this.dx);
+    this.x += OneEuro.alpha(cutoff, dt) * (v - this.x);
+    return this.x;
+  }
+}
+
 const apply = (w, x) => w[0] + x.reduce((a, v, i) => a + v * w[i + 1], 0);
 const featVec = (f) => [f.irisH, f.bsH, f.irisV, f.bsV];
 // Features have very different ranges (iris ±0.1, blendshapes ±0.6), so they
@@ -64,6 +82,7 @@ export class Tracker {
     this.calib = null;          // { wx, wy }
     this.offset = { x: 0, y: 0 }; // slow drift correction
     this.smooth = null;
+    this.fx = new OneEuro(); this.fy = new OneEuro();
     this.headTolDeg = 8;
     this.movedSince = 0;
     this.stillSince = 0;
@@ -168,8 +187,8 @@ export class Tracker {
         x: apply(this.calib.wx, nf) * hc.scale + hc.x + this.offset.x,
         y: apply(this.calib.wy, nf) * hc.scale + hc.y + this.offset.y,
       };
-      const k = 0.35;
-      this.smooth = this.smooth ? { x: this.smooth.x + (raw.x - this.smooth.x) * k, y: this.smooth.y + (raw.y - this.smooth.y) * k } : raw;
+      if (!this.smooth) { this.fx.reset(); this.fy.reset(); }
+      this.smooth = { x: this.fx.filter(raw.x, now), y: this.fy.filter(raw.y, now) };
       this.smooth.x = Math.max(-1.4, Math.min(1.4, this.smooth.x));
       this.smooth.y = Math.max(-1.4, Math.min(1.4, this.smooth.y));
     }
@@ -235,7 +254,7 @@ export class Tracker {
       // instead of waiting forever for the old one.
       this.recent.push({ t: now, yaw: f.yaw, pitch: f.pitch, tx: f.tx, ty: f.ty });
       while (this.recent.length && now - this.recent[0].t > 1400) this.recent.shift();
-      if (this.headMoved && now - this.movedSince > 1500 && this.recent.length > 8 && now - this.recent[0].t > 1100) {
+      if (this.headMoved && now - this.movedSince > 1000 && this.recent.length > 8 && now - this.recent[0].t > 800) {
         const spread = (k) => Math.max(...this.recent.map((r) => r[k])) - Math.min(...this.recent.map((r) => r[k]));
         if (spread('yaw') < 3 && spread('pitch') < 3 && Math.hypot(spread('tx'), spread('ty')) < 1.5) this.settled = true;
       }
@@ -326,6 +345,8 @@ export class Tracker {
     this.offset.x = Math.max(-0.35, Math.min(0.35, this.offset.x - sx));
     this.offset.y = Math.max(-0.35, Math.min(0.35, this.offset.y - sy));
     if (this.smooth) { this.smooth.x -= sx; this.smooth.y -= sy; }
+    if (this.fx.x !== null) this.fx.x -= sx;
+    if (this.fy.x !== null) this.fy.x -= sy;
     this.driftFixes = (this.driftFixes || 0) + 1;
   }
 

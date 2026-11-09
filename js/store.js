@@ -92,9 +92,40 @@ export function nudgeReach(dir, delta) {
   r[dir] = clamp(+(r[dir] + delta).toFixed(3), 0.15, 0.95);
 }
 
-// Sticker book: every illustrated character in three colourways (27 stickers).
-const STICKER_ART = ['owl', 'fox', 'wolf', 'shark', 'panther', 'eagle', 'raccoon', 'ball', 'medal'];
-export const STICKERS = [0, 1, 2].flatMap((v) => STICKER_ART.map((k) => ({ k, v })));
-export const STICKER_FILTERS = ['none', 'hue-rotate(150deg) saturate(1.2)', 'sepia(1) saturate(4) hue-rotate(-12deg) brightness(1.15)'];
-export const STARS_PER_STICKER = 12;
-export const stickersOwned = (stars = state.progress.stars) => Math.min(STICKERS.length, Math.floor(stars / STARS_PER_STICKER));
+// Avatars: each round one of them sits in the centre, and finishing the round
+// earns that avatar's sticker (next colourway). 7 avatars × 4 colourways.
+export const AVATARS = ['owl', 'fox', 'wolf', 'shark', 'panther', 'eagle', 'raccoon'];
+export const STICKERS = [0, 1, 2, 3].flatMap((v) => AVATARS.map((k) => ({ k, v })));
+export const STICKER_FILTERS = ['none', 'hue-rotate(150deg) saturate(1.2)', 'sepia(1) saturate(4) hue-rotate(-12deg) brightness(1.15)', 'hue-rotate(260deg) saturate(1.4)'];
+const key = (st) => `${st.k}:${st.v}`;
+export const hasSticker = (st) => state.progress.stickers.includes(key(st));
+export const stickersOwned = () => state.progress.stickers.length;
+const colourwaysOf = (k) => state.progress.stickers.filter((s) => s.startsWith(k + ':')).length;
+
+// Avatar for the next round: one with the fewest stickers so far, never the
+// same twice in a row, so the book fills evenly.
+export function pickAvatar() {
+  const last = state.progress.lastAvatar;
+  const open = AVATARS.filter((k) => colourwaysOf(k) < STICKER_FILTERS.length);
+  const pool = (open.length ? open : AVATARS).filter((k) => k !== last || AVATARS.length < 2);
+  const min = Math.min(...pool.map(colourwaysOf));
+  const best = pool.filter((k) => colourwaysOf(k) === min);
+  return best[Math.floor(Math.random() * best.length)];
+}
+
+// Give the sticker of avatar k (its next colourway). Returns it, or null if
+// that avatar is complete.
+export function awardSticker(k) {
+  const v = colourwaysOf(k);
+  if (v >= STICKER_FILTERS.length) return null;
+  const st = { k, v };
+  state.progress.stickers.push(key(st));
+  return st;
+}
+
+// v3: stickers used to follow the medal count; keep what was earned.
+if ((state.progress.v || 1) < 3) {
+  const earned = Math.min(STICKERS.length, Math.floor((state.progress.stars || 0) / 12));
+  state.progress.stickers = STICKERS.slice(0, earned).map(key);
+  state.progress.v = 3;
+}

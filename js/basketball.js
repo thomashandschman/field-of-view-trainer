@@ -90,10 +90,12 @@ export class BasketballGame extends BaseGame {
         perp = Math.abs(g.x * d.y - g.y * d.x) / L;
       }
       if (this.firstMove === null && along > L * 0.35) this.firstMove = this.phaseT;
-      const hit = along > L * (0.62 / this.tol) && perp < 0.45 * this.tol;
-      this.dwell = hit ? this.dwell + dt : Math.max(0, this.dwell - dt);
+      const help = this.aimHelp ? 1.4 : 1;
+      const hit = along > L * (0.62 / (this.tol * help)) && perp < 0.45 * this.tol * help;
+      this.dwell = hit ? this.dwell + dt : Math.max(0, this.dwell - dt * 0.4);
       if (this.phaseT > 1.8 && !this.saidLook) { this.saidLook = true; speak('lookHoop', { mode: 'ifIdle', force: true }); }
       if (this.dwell > 0.2) this.shoot();
+      else if (this.phaseT > 3.5 && !this.aimHelp) { this.aimHelp = true; this.phaseT = 1.9; } // wider zone, more time
       else if (this.phaseT > 3.5) this.missAim();
     } else if (this.phase === 'shot') {
       const u = Math.min(1, this.phaseT / this.shot.T);
@@ -136,6 +138,7 @@ export class BasketballGame extends BaseGame {
   }
 
   startAim() {
+    this.aimHelp = false;
     // mostly alternate sides, sometimes repeat to stay unpredictable
     this.side = Math.random() < 0.7 ? -this.lastSide || (Math.random() < 0.5 ? -1 : 1) : this.side;
     this.lastSide = this.side;
@@ -178,7 +181,7 @@ export class BasketballGame extends BaseGame {
   }
 
   missAim() {
-    sfx.rim(this.side * 0.8);
+    sfx.soft?.(this.side * 0.8);
     adjust(this.side < 0 ? 'left' : 'right', -0.04);
     this.phase = 'dribble'; this.phaseT = 0; this.meter = 0.5;
   }

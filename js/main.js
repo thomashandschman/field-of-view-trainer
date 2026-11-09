@@ -7,7 +7,7 @@ import { PendelGame } from './pendel.js';
 GAMES.basket = BasketballGame;
 GAMES.pendel = PendelGame;
 import { DEVICES, detectDevice, longSideCm, cmPerCssPx } from './devices.js';
-import { state, save, addSession, minutesToday, resetProgress, STICKERS, STICKER_FILTERS, STARS_PER_STICKER, stickersOwned, todayKey, clamp } from './store.js';
+import { state, save, addSession, minutesToday, resetProgress, STICKERS, STICKER_FILTERS, stickersOwned, hasSticker, pickAvatar, awardSticker, todayKey, clamp } from './store.js';
 import { setLang, t, applyI18n } from './i18n.js';
 import { unlockAudio, preloadAudio, sfx, speak, stopSpeech } from './audio.js';
 
@@ -128,8 +128,6 @@ let newStickers = [];
 function addStar() {
   sessionStars++;
   state.progress.stars++;
-  const owned = stickersOwned();
-  if (owned > stickersOwned(state.progress.stars - 1)) newStickers.push(STICKERS[owned - 1]);
   $('#hud-stars-n').textContent = sessionStars;
   $('#hud-stars').classList.remove('bump'); void $('#hud-stars').offsetWidth; $('#hud-stars').classList.add('bump');
 }
@@ -165,13 +163,14 @@ function stickerImg(st, cls = '') {
 function renderHome() {
   const s = state.progress;
   const owned = stickersOwned();
-  $('#sticker-row').innerHTML = STICKERS.map((st, i) => (i < owned
+  $('#sticker-row').innerHTML = STICKERS.map((st) => (hasSticker(st)
     ? `<span class="sticker got">${stickerImg(st)}</span>`
     : `<span class="sticker" aria-hidden="true"></span>`)).join('');
-  const toNext = STARS_PER_STICKER - (s.stars % STARS_PER_STICKER);
+  if (!s.nextAvatar) { s.nextAvatar = pickAvatar(); save(); }
   $('#stars-total-n').textContent = s.stars;
-  $('#stars-next').textContent = owned >= STICKERS.length ? '' : t('starsToNext', toNext);
-  $('#stars-meter').style.setProperty('--p', owned >= STICKERS.length ? 1 : (s.stars % STARS_PER_STICKER) / STARS_PER_STICKER);
+  $('#stars-next').innerHTML = owned >= STICKERS.length ? t('stickersDone')
+    : `${t('nextSticker')} <img class="next-av" src="img/${s.nextAvatar}.png" alt=""> <b>${t('av_' + s.nextAvatar)}</b>`;
+  $('#stars-meter').style.setProperty('--p', owned / STICKERS.length);
   const limitReached = minutesToday() >= state.settings.dailyMin;
   $('#daily-note').hidden = !limitReached;
   $('#daily-note').textContent = t('dailyDone');
@@ -313,7 +312,7 @@ function drawCalib(c) {
     const a = env.now / 450 + (i * Math.PI) / 2;
     twinkle(c, P.x + Math.cos(a) * r * 1.9, P.y + Math.sin(a) * r * 1.9, r * 0.18, '#fff3c0', grow * 0.8, a);
   }
-  sprite(c, 'star', P.x, P.y, r * 2.6, { rot: Math.sin(env.now / 300) * 0.1 });
+  sprite(c, 'ball', P.x, P.y, r * 2.3, { rot: env.now / 600 });
   // progress dots
   c.fillStyle = 'rgba(255,255,255,0.5)';
   s.points.forEach((_, i) => {
@@ -334,6 +333,8 @@ function startRound() {
   tracker.headComp = state.settings.headComp !== false;
   tracker.resetSessionStats();
   sessionStars = 0; newStickers = [];
+  // This round's avatar sits in the centre; finishing the round earns its sticker.
+  env.avatar = state.progress.nextAvatar || pickAvatar();
   $('#hud-stars-n').textContent = '0';
   setBackground(['basket', 'saccade', 'pendel'].includes(selectedGame) ? 'arena' : 'meadow');
   game = new GAMES[selectedGame](env);
@@ -356,7 +357,7 @@ const INTROS = {
     steps: [
       { pic: '<span class="glow"></span><img class="bounce" src="img/ball.png" alt=""><span class="eye">👀</span>', h: 'pendelStep1', txt: 'pendelStep1Txt' },
       { pic: '<span class="pendel-pic"><i class="rope"></i><i class="rim"></i></span>', h: 'pendelStep2', txt: 'pendelStep2Txt' },
-      { pic: '<span class="glow"></span><img src="img/star.png" alt="">', h: 'pendelStep3', txt: 'pendelStep3Txt' },
+      { pic: '<span class="glow"></span><img src="img/ball.png" alt="" style="filter:sepia(1) saturate(5) hue-rotate(5deg) brightness(1.15)">', h: 'pendelStep3', txt: 'pendelStep3Txt' },
     ],
   },
   basket: {
@@ -428,6 +429,10 @@ function drawRecenter(c) {
 
 function finishRound() {
   game.finish?.();
+  const st = awardSticker(env.avatar || 'owl');
+  if (st) newStickers.push(st);
+  state.progress.lastAvatar = env.avatar;
+  state.progress.nextAvatar = pickAvatar();
   const sum = game.summary();
   const rec = {
     date: new Date().toISOString(),
@@ -542,6 +547,7 @@ window.addEventListener('keydown', (e) => {
 // ---------- main loop ----------
 let last = performance.now();
 let noFaceFor = 0;
+let movedFor = 0;
 let farFor = 0;
 function loop(now) {
   requestAnimationFrame(loop);
@@ -552,9 +558,13 @@ function loop(now) {
   const f = tracker.update(now);
 
   // Head must stay still and the face must be visible; otherwise freeze.
+  // Short glitches (a hand in front of the face, a quick wobble) do not
+  // interrupt the game: only a loss over 1 s or a movement over 0.6 s does.
   noFaceFor = f.face ? 0 : noFaceFor + dt;
-  const lostFace = noFaceFor > 0.5;
-  const moved = f.face && f.headOk === false && (scene.kind === 'calib' || scene.kind === 'game');
+  const lostFace = noFaceFor > 1.0;
+  const movedNow = f.face && f.headOk === false && (scene.kind === 'calib' || scene.kind === 'game');
+  movedFor = movedNow ? movedFor + dt : 0;
+  const moved = movedNow && (scene.kind === 'calib' || movedFor > 0.6);
 
   // Head came to rest at a new place: adopt it instead of waiting forever.
   if (tracker.settled) {
@@ -604,7 +614,7 @@ function loop(now) {
     ctx.fillText(`head ${f.headDev?.toFixed(1)}°  dist ${f.dist?.toFixed(0)}cm`, 12 + env.safeLeft, env.H - 14 - env.safeBottom);
   }
 }
-if (DEMO || TEST) window.__ff = { get game() { return game; }, get scene() { return scene; }, tracker, env };
+if (DEMO || TEST) window.__ff = { get game() { return game; }, get scene() { return scene; }, tracker, env, finish: () => finishRound(), state };
 requestAnimationFrame(loop);
 
 // ---------- parent area ----------
