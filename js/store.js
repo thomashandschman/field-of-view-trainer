@@ -13,7 +13,8 @@ export const DEFAULT_SETTINGS = {
   sound: true,
   debugGaze: false,
   headComp: true,         // fold small head movements into the gaze point
-  screenCm: '',
+  device: 'auto',         // 'auto' | device id from devices.js | 'custom'
+  screenCm: '',           // long side of the screen in cm, for 'custom'
   // Which games show on the home screen. By default only Ball-Hüpfer.
   games: { saccade: true, basket: false, pendel: false, pursuit: false, spotter: false },
 };
@@ -47,6 +48,8 @@ function load() {
 }
 
 export const state = load();
+// Older versions stored a screen width without a device: keep it as custom.
+if (state.settings.screenCm && !localStorage.getItem(KEY)?.includes('"device"')) state.settings.device = 'custom';
 
 // v2 (Nov 2026): faster movement and wider starting reach, so the eyes are
 // moved further. Lift older, slower progress once.

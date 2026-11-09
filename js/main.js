@@ -6,6 +6,7 @@ import { BasketballGame } from './basketball.js';
 import { PendelGame } from './pendel.js';
 GAMES.basket = BasketballGame;
 GAMES.pendel = PendelGame;
+import { DEVICES, detectDevice, longSideCm, cmPerCssPx } from './devices.js';
 import { state, save, addSession, minutesToday, resetProgress, STICKERS, STICKER_FILTERS, STARS_PER_STICKER, stickersOwned, todayKey, clamp } from './store.js';
 import { setLang, t, applyI18n } from './i18n.js';
 import { unlockAudio, preloadAudio, sfx, speak, stopSpeech } from './audio.js';
@@ -86,7 +87,7 @@ function resize() {
   env.hw = env.W / 2 - margin; env.hh = env.H / 2 - margin;
   // Physical size of one CSS pixel: from the parent's screen-width setting if
   // given, otherwise ~0.019 cm (iPhone, iPad and Mac are all close to this).
-  const cmPerPx = parseFloat(state.settings.screenCm) > 0 ? parseFloat(state.settings.screenCm) / env.W : 0.019;
+  const cmPerPx = cmPerCssPx(state.settings.device, state.settings.screenCm);
   tracker.screenHalfCm = { x: env.hw * cmPerPx, y: env.hh * cmPerPx };
   buildBackground();
 }
@@ -619,11 +620,9 @@ document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () 
 }));
 
 function degrees(reachFrac, axis) {
-  const cm = parseFloat(state.settings.screenCm);
-  if (!cm) return null;
   const last = [...state.sessions].reverse().find((s) => s.dist);
   const dist = last?.dist || 45;
-  const cmPerPx = cm / window.innerWidth;
+  const cmPerPx = cmPerCssPx(state.settings.device, state.settings.screenCm);
   const half = axis === 'h' ? env.hw : env.hh;
   return Math.atan((reachFrac * half * cmPerPx) / dist) * 180 / Math.PI;
 }
@@ -670,9 +669,19 @@ function drawTrend() {
     <path d="${path(series.v)}" fill="none" stroke="var(--accent-2)" stroke-width="2.5"/>`;
 }
 
+function renderDeviceSelect() {
+  const det = detectDevice();
+  const groups = ['iPhone', 'iPad', 'MacBook'];
+  $('#s-device').innerHTML = `<option value="auto">${t('sDeviceAuto')} (${det ? det.name : t('sDeviceUnknown')})</option>`
+    + groups.map((g) => `<optgroup label="${g}">${DEVICES.filter((d) => d.group === g).map((d) => `<option value="${d.id}">${d.name} · ${longSideCm(d).toFixed(1)} cm</option>`).join('')}</optgroup>`).join('')
+    + `<option value="custom">${t('sDeviceCustom')}</option>`;
+}
+
 function renderSettings() {
   const s = state.settings;
   const form = $('#settings-form');
+  renderDeviceSelect();
+  $('#s-screen-wrap').hidden = s.device !== 'custom';
   form.querySelectorAll('[name]').forEach((el) => {
     const v = s[el.name];
     if (el.type === 'checkbox') el.checked = !!v;
@@ -695,7 +704,8 @@ $('#settings-form').addEventListener('input', (e) => {
     state.settings[el.name] = el.type === 'checkbox' ? el.checked : (el.type === 'number' || el.tagName === 'SELECT' && /^\d+$/.test(el.value) ? (el.value === '' ? '' : +el.value) : el.value);
     if (el.name === 'lang') { setLang(el.value); applyI18n(); renderParent(); }
     if (el.name === 'headComp') tracker.headComp = el.checked;
-    if (el.name === 'screenCm') resize();
+    if (el.name === 'screenCm' || el.name === 'device') resize();
+    if (el.name === 'device') $('#s-screen-wrap').hidden = el.value !== 'custom';
   } else if (el.id?.startsWith('reach-')) {
     const d = el.id.split('-')[1];
     state.progress.reach[d] = clamp(+el.value / 100, 0.15, 0.95);

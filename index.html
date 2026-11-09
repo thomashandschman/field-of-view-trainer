@@ -196,8 +196,10 @@
         <select name="headTol" id="s-head"><option value="strict" data-i18n="strict">Strict</option><option value="normal" data-i18n="normal">Normal</option><option value="relaxed" data-i18n="relaxed">Relaxed</option></select></label>
       <label><span data-i18n="sGaze">Eye-tracking tolerance</span>
         <select name="gazeTol" id="s-gaze"><option value="strict" data-i18n="strict">Strict</option><option value="normal" data-i18n="normal">Normal</option><option value="relaxed" data-i18n="relaxed">Relaxed</option></select></label>
-      <label><span data-i18n="sScreen">Screen width (cm)</span>
-        <input type="number" name="screenCm" id="s-screen" min="5" max="80" step="0.5" inputmode="decimal"></label>
+      <label><span data-i18n="sDevice">Gerät (für die Bildschirmgröße)</span>
+        <select name="device" id="s-device"></select></label>
+      <label id="s-screen-wrap" hidden><span data-i18n="sScreen">Bildschirmbreite in cm (lange Seite)</span>
+        <input type="number" name="screenCm" id="s-screen" min="5" max="80" step="0.1" inputmode="decimal"></label>
       <label class="check"><input type="checkbox" name="voice" id="s-voice"> <span data-i18n="sVoice">Spoken instructions</span></label>
       <label class="check"><input type="checkbox" name="sound" id="s-sound"> <span data-i18n="sSound">Sounds</span></label>
       <label class="check"><input type="checkbox" name="allowTap" id="s-tap"> <span data-i18n="sTap">Accept tapping</span></label>

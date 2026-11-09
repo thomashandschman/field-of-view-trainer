@@ -318,6 +318,17 @@ export class Tracker {
   }
 
 
+  // Drift correction from a confirmed rest on Ollie (centre) at (mx, my):
+  // take out a third of the error, at most 0.05 per step, ±0.35 in total.
+  driftCorrect(mx, my) {
+    const step = (v) => Math.max(-0.05, Math.min(0.05, v * 0.35));
+    const sx = step(mx), sy = step(my);
+    this.offset.x = Math.max(-0.35, Math.min(0.35, this.offset.x - sx));
+    this.offset.y = Math.max(-0.35, Math.min(0.35, this.offset.y - sy));
+    if (this.smooth) { this.smooth.x -= sx; this.smooth.y -= sy; }
+    this.driftFixes = (this.driftFixes || 0) + 1;
+  }
+
   // Gentle drift correction while the child is known to be looking at a point.
   nudgeTowards(target, amount = 0.015) {
     const g = this.smooth;

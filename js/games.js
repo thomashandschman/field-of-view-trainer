@@ -99,6 +99,27 @@ class BaseGame {
     const dx = gaze.x - target.x, dy = (gaze.y - target.y) * 0.85;
     return Math.hypot(dx, dy) < radius * this.tol;
   }
+  // Drift correction when the eyes come back to Ollie. Only when the look is
+  // clearly resting (≥300 ms, spread < 0.12), the head is steady and the
+  // resting point is near Ollie (a look elsewhere, e.g. still at the old
+  // target, is far off and ignored). Then a third of the error is taken out,
+  // at most once per return.
+  ollieFix(f) {
+    const g = f.gaze, buf = this._fix || (this._fix = []);
+    if (!g || f.blink || f.headOk === false || this._fixDone) { buf.length = 0; return; }
+    const now = this.env.now;
+    buf.push({ t: now, x: g.x, y: g.y });
+    while (buf.length && now - buf[0].t > 400) buf.shift();
+    if (buf.length < 6 || now - buf[0].t < 300) return;
+    const xs = buf.map((p) => p.x), ys = buf.map((p) => p.y);
+    if (Math.max(...xs) - Math.min(...xs) > 0.12 || Math.max(...ys) - Math.min(...ys) > 0.12) return;
+    const mid = (a) => [...a].sort((p, q) => p - q)[a.length >> 1];
+    const mx = mid(xs), my = mid(ys);
+    if (Math.hypot(mx, my * 0.85) > 0.45) return;
+    this.env.tracker.driftCorrect?.(mx, my);
+    this._fixDone = true; buf.length = 0;
+  }
+  ollieFixReset() { this._fixDone = false; if (this._fix) this._fix.length = 0; }
   onPointer() {}
   onKey() {}
   summary() {
@@ -279,8 +300,8 @@ export class SaccadeGame extends BaseGame {
     if (this.phase === 'center') {
       if (this.gazeNear(gaze, { x: 0, y: 0 }, 0.3)) this.centerHold += dt;
       else this.centerHold = Math.max(0, this.centerHold - dt * 0.5);
-      // If the eyes look steady but slightly off, assume drift and correct a bit.
-      if (this.phaseT > 1.8 && gaze && Math.hypot(gaze.x, gaze.y) < 0.6) this.env.tracker.nudgeTowards({ x: 0, y: 0 }, 0.015);
+      // Eyes back at Ollie and resting: take out tracking drift.
+      this.ollieFix(f);
       if (this.centerHold > 0.2 + this.wait || this.phaseT > 3.5) {
         const dir = this.nextDir();
         const v = vecFor(dir);
@@ -301,7 +322,7 @@ export class SaccadeGame extends BaseGame {
       if (this.dwell > 0.22) this.success();
       else if (this.phaseT > 3) this.fail();
     } else if (this.phase === 'return') {
-      if (this.phaseT > 0.3) { this.phase = 'center'; this.phaseT = 0; this.centerHold = 0; this.wait = rand(0.1, 0.5); }
+      if (this.phaseT > 0.3) { this.phase = 'center'; this.phaseT = 0; this.centerHold = 0; this.wait = rand(0.1, 0.5); this.ollieFixReset(); }
     }
     this.particles.update(dt);
   }
@@ -378,7 +399,7 @@ export class SpotterGame extends BaseGame {
     if (this.phase === 'fixate') {
       if (this.gazeNear(gaze, { x: 0, y: 0 }, 0.3)) this.hold += dt;
       else this.hold = Math.max(0, this.hold - dt);
-      if (this.phaseT > 2 && gaze && Math.hypot(gaze.x, gaze.y) < 0.6) this.env.tracker.nudgeTowards({ x: 0, y: 0 }, 0.015);
+      this.ollieFix(f);
       if (this.hold > this.holdNeed || this.phaseT > 5) {
         const dir = directions()[Math.floor(Math.random() * directions().length)];
         this.critter = { dir, v: vecFor(dir, 0.05), emoji: CRITTERS[Math.floor(Math.random() * CRITTERS.length)], peeked: false };
@@ -392,7 +413,7 @@ export class SpotterGame extends BaseGame {
       }
       if (this.phaseT > 2.6 && !this.answered) this.resolve(null);
     } else if (this.phase === 'feedback') {
-      if (this.phaseT > 0.9) { this.phase = 'fixate'; this.phaseT = 0; this.hold = 0; this.critter = null; this.feedback = null; this.holdNeed = rand(0.7, 1.6); }
+      if (this.phaseT > 0.9) { this.phase = 'fixate'; this.phaseT = 0; this.hold = 0; this.critter = null; this.feedback = null; this.holdNeed = rand(0.7, 1.6); this.ollieFixReset(); }
     }
     this.particles.update(dt);
   }
